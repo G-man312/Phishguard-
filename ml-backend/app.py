@@ -34,9 +34,6 @@ def initialize_model():
     else:
         print("[WARNING] Model failed to load on startup - will retry on first request")
 
-# Initialize model
-initialize_model()
-
 def extract_features_for_prediction(url):
     """
     Extract the same features we used during training.
@@ -187,6 +184,9 @@ def load_model():
     except Exception as e:
         print(f"[ERROR] Failed to load model: {e}")
         return False
+
+# Initialize model after function definition (for gunicorn/production)
+initialize_model()
 
 @app.route('/health', methods=['GET'])
 def health():
