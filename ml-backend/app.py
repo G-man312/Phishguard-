@@ -26,6 +26,17 @@ CORS(app, resources={
 model = None
 feature_columns = None
 
+# Load model when app starts (for gunicorn/production)
+def initialize_model():
+    global model, feature_columns
+    if load_model():
+        print("[SUCCESS] Model loaded on startup")
+    else:
+        print("[WARNING] Model failed to load on startup - will retry on first request")
+
+# Initialize model
+initialize_model()
+
 def extract_features_for_prediction(url):
     """
     Extract the same features we used during training.
