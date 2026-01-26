@@ -1,6 +1,5 @@
 {
   "build": {
-    "builder": "dockerfile",
-    "context": "./ml-backend"
+    "dockerfile": "./ml-backend/Dockerfile"
   }
 }
