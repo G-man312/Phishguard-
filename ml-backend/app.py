@@ -15,7 +15,12 @@ import re
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)  # Allow Chrome extension to make requests
+# Allow Chrome extension to make requests (extensions have chrome-extension:// origin)
+CORS(app, resources={
+    r"/predict": {"origins": "*", "methods": ["POST", "OPTIONS"]},
+    r"/report": {"origins": "*", "methods": ["POST", "OPTIONS"]},
+    r"/health": {"origins": "*", "methods": ["GET", "OPTIONS"]}
+})
 
 # Global variable to store the model
 model = None
