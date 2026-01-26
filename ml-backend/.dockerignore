@@ -1,0 +1,13 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+env/
+build/
+dist/
+*.egg-info
+ml-backend/phishguard_model.pkl
+ml-backend/reports.md
+.vscode
+node_modules

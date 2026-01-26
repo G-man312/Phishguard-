@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>PhishGuard</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app" class="state-neutral">
+    <header>
+      <h1>PhishGuard</h1>
+      <small id="url"></small>
+      <button id="themeToggle" class="ghost" title="Toggle theme">Dark Mode</button>
+    </header>
+
+    <section id="result">
+      <div id="badge">Checking…</div>
+      <p id="message">Analysing this page for risky patterns.</p>
+      <ul id="reasons"></ul>
+    </section>
+
+    <section id="actions">
+      <button id="proceed" class="ghost">Proceed Anyway</button>
+      <button id="goback" class="danger">Go Back</button>
+      <button id="close" class="danger">Close Tab</button>
+      <button id="report" class="ghost">Report Site</button>
+    </section>
+  </div>
+
+  <script src="classifier.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
