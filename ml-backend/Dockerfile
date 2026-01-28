@@ -17,9 +17,10 @@ RUN python -m pip install --upgrade pip setuptools wheel && \
 COPY ml-backend /app
 
 ENV PYTHONUNBUFFERED=1
-ENV PORT=5000
 
 EXPOSE 5000
 
-# Use gunicorn for production serving
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2"]
+# Use ENTRYPOINT with start.sh (always uses port 5000)
+COPY ../start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+ENTRYPOINT ["/app/start.sh"]

@@ -17,12 +17,10 @@ RUN python -m pip install --upgrade pip setuptools wheel && \
 COPY ml-backend /app
 
 ENV PYTHONUNBUFFERED=1
-ENV PORT=5000
 
 EXPOSE 5000
 
-
-# Use ENTRYPOINT with start.sh for reliable PORT handling
+# Use ENTRYPOINT with start.sh (always uses port 5000)
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 ENTRYPOINT ["/app/start.sh"]
