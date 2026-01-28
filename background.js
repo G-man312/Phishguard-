@@ -4,7 +4,7 @@ const DEBUG = true; // Enable for debugging ML API calls
 const log = (...args) => DEBUG && console.log('[PG]', ...args);
 
 // ML API configuration
-const ML_API_URL = 'http://localhost:5000/predict';
+const ML_API_URL = 'https://phishguard-production-f4cc.up.railway.app/predict';
 const ML_ENABLED = true; // Set to false to disable ML predictions
 
 // Draw circular icon with OffscreenCanvas. We return 16/32/48 for DPI variants.
