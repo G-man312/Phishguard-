@@ -21,5 +21,8 @@ ENV PORT=5000
 
 EXPOSE 5000
 
-# Use gunicorn for production serving (shell form to expand PORT, with default)
-CMD gunicorn --bind 0.0.0.0:${PORT:-5000} app:app --workers 2
+
+# Use ENTRYPOINT with start.sh for reliable PORT handling
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+ENTRYPOINT ["/app/start.sh"]
