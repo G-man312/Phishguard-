@@ -53,6 +53,7 @@ const MALICIOUS_DATASET = [
   'secure-verify.test',
   'purplehoodie.com',
   'apunkagames.com',
+  'apunkagames.net',
   'sadeempc.com',
   'crackingpatching.com',
   'oceanofgames.com',
