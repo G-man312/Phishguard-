@@ -560,7 +560,7 @@ function collectReasons(u) {
   // Domain/hostname checks
   if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) reasons.push('IP address used instead of domain');
   if ((host.match(/\./g) || []).length >= 3) reasons.push('Many subdomains');
-  if (host.includes('-')) reasons.push('Hyphen in domain');
+
   if (/\bxn--/i.test(host)) reasons.push('Punycode domain detected');
   // Additional URL signals to align with popup
   if (u.protocol !== 'https:') reasons.push('No HTTPS detected');
