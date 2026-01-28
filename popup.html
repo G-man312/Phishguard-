@@ -4,27 +4,60 @@
   <meta charset="utf-8" />
   <title>PhishGuard</title>
   <link rel="stylesheet" href="popup.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="app" class="state-neutral">
-    <header>
-      <h1>PhishGuard</h1>
-      <small id="url"></small>
-      <button id="themeToggle" class="ghost" title="Toggle theme">Dark Mode</button>
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <h1>PhishGuard</h1>
+      </div>
+      <button id="themeToggle" class="icon-btn" title="Toggle theme">
+        <!-- Moon Icon -->
+        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <!-- Sun Icon (hidden by CSS based on theme) -->
+        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
     </header>
 
-    <section id="result">
-      <div id="badge">Checking…</div>
-      <p id="message">Analysing this page for risky patterns.</p>
-      <ul id="reasons"></ul>
-    </section>
+    <!-- Main Content Card -->
+    <main class="card">
+      
+      <!-- Status Section -->
+      <section id="result" class="status-section">
+        <div class="status-icon-container">
+          <!-- Dynamically changed via CSS based on state -->
+          <svg class="status-icon icon-safe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <svg class="status-icon icon-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <svg class="status-icon icon-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          <svg class="status-icon icon-unknown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
 
-    <section id="actions">
-      <button id="proceed" class="ghost">Proceed Anyway</button>
-      <button id="goback" class="danger">Go Back</button>
-      <button id="close" class="danger">Close Tab</button>
-      <button id="report" class="ghost">Report Site</button>
-    </section>
+        <div id="badge" class="status-badge">Checking…</div>
+        <small id="url" class="url-display"></small>
+        <p id="message" class="status-message">Analysing site patterns...</p>
+        
+        <div class="divider"></div>
+        
+        <ul id="reasons" class="reasons-list"></ul>
+      </section>
+
+      <!-- Actions Section -->
+      <section id="actions" class="actions-grid">
+        <button id="proceed" class="btn btn-secondary">Proceed</button>
+        <button id="goback" class="btn btn-primary">Go Back</button>
+        <button id="close" class="btn btn-danger">Close Tab</button>
+        <button id="report" class="btn btn-outline">Report Site</button>
+        <button id="trust" class="btn btn-success">Trust Site</button>
+      </section>
+
+    </main>
+
   </div>
 
   <script src="classifier.js"></script>

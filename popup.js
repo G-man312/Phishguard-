@@ -94,6 +94,7 @@ function setUI(state) {
   document.getElementById('goback').style.display  = danger ? 'inline-block' : 'none';
   document.getElementById('close').style.display   = state.label === 'malicious' ? 'inline-block' : 'none';
   document.getElementById('report').style.display = state.label === 'malicious' ? 'none' : 'inline-block';
+  document.getElementById('trust').style.display = state.label === 'malicious' ? 'none' : 'inline-block';
 }
 
 function nudgeBackgroundToSetIcon(label, tabId) {
@@ -130,6 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Instant local classification (from classifier.js) with whitelist override
   let currentState = window.classifyUrlQuick(urlText);
+  let isWhite = false;
   try {
     const u = new URL(urlText);
     const host = u.hostname || '';
@@ -139,25 +141,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (hostname === domain) return true;
       return hostname.endsWith('.' + domain);
     };
-    const isWhite = whitelist.some(d => matchesDomain(host, d));
-    if (isWhite) currentState = { ...currentState, label: 'safe', reasons: [...(currentState.reasons||[]), 'Domain is whitelisted'] };
+    isWhite = whitelist.some(d => matchesDomain(host, d));
+    // Also check SAFE_DATASET from classifier.js
+    if (!isWhite && window.SAFE_DATASET) {
+      isWhite = window.SAFE_DATASET.some(d => matchesDomain(host, d));
+    }
+    if (isWhite) {
+      // Remove any duplicate or old reason
+      let reasons = (currentState.reasons || []).filter(r => !/Domain is whitelisted or in SAFE_DATASET|Domain is whitelisted or in safe dataset/i.test(r));
+      reasons.push('Domain is whitelisted or in safe dataset');
+      currentState = { ...currentState, label: 'safe', reasons };
+    }
   } catch {}
 
-  // For suspicious or unknown sites, query ML API to get webpage-based prediction
-  // ML alone can trigger suspicious flag - both URL heuristics OR ML can mark as suspicious
-  if (currentState.label === 'suspicious' || currentState.label === 'unknown') {
+  // If whitelisted or in SAFE_DATASET, always force safe (even if ML runs first)
+  if (isWhite) {
+    // Remove any duplicate or old reason
+    let reasons = (currentState.reasons || []).filter(r => !/Domain is whitelisted or in SAFE_DATASET|Domain is whitelisted or in safe dataset/i.test(r));
+    reasons.push('Domain is whitelisted or in safe dataset');
+    currentState = { ...currentState, label: 'safe', reasons };
+  } else if (currentState.label === 'suspicious' || currentState.label === 'unknown') {
     // Skip ML for browser internal URLs
     if (!urlText.startsWith('edge://') && !urlText.startsWith('chrome://') && !urlText.startsWith('about:')) {
       const mlResult = await queryMLAPI(urlText);
-      
       if (mlResult && mlResult.suspicious && mlResult.probability >= 0.3) {
         // ML confirms suspicious - upgrade to suspicious and add to reasons
-        // This allows ML alone to trigger suspicious (probability >= 0.3)
         const mlConfidence = Math.round(mlResult.probability * 100);
         const mlReason = `Machine Learning model detected suspicious characteristics (${mlConfidence}% confidence)`;
         currentState = {
           ...currentState,
-          label: 'suspicious', // Upgrade to suspicious when ML detects it (even if URL heuristics didn't)
+          label: 'suspicious',
           reasons: [...(currentState.reasons || []), mlReason],
           mlProbability: mlResult.probability,
           mlConfirmed: true
@@ -199,12 +212,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       label: currentState.label, 
       reasons: currentState.reasons || [] 
     };
-    
     // Store in browser storage (backup)
     const prev = (await chrome.storage.local.get('reports')).reports || [];
     prev.push({ ...report, ts: Date.now() });
     await chrome.storage.local.set({ reports: prev });
-    
     // Send to backend to save in reports.md file
     try {
       const response = await fetch(REPORT_API_URL, {
@@ -212,18 +223,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(report)
       });
-      
       if (response.ok) {
         const result = await response.json();
         alert('Thanks! Your report was saved to reports.md file.');
       } else {
-        // If backend is not available, still acknowledge storage
         alert('Thanks! Your report was recorded locally. (Backend not available - reports.md not updated)');
       }
     } catch (error) {
-      // Backend might not be running, but we still saved to browser storage
       console.warn('Failed to send report to backend:', error);
       alert('Thanks! Your report was recorded locally. (Backend not available - reports.md not updated)');
+    }
+  };
+
+  // Trust Site button: add to whitelist and update UI/icon immediately
+  document.getElementById('trust').onclick = async () => {
+    try {
+      const u = new URL(urlText);
+      const host = u.hostname || '';
+      let { whitelist = [] } = await chrome.storage.local.get(['whitelist']);
+      if (!whitelist.includes(host)) {
+        whitelist.push(host);
+        await chrome.storage.local.set({ whitelist });
+      }
+      // Update UI and icon immediately
+      currentState = { ...currentState, label: 'safe', reasons: [...(currentState.reasons||[]), 'Domain is whitelisted'] };
+      setUI(currentState);
+      nudgeBackgroundToSetIcon('safe', tab.id);
+      // Also trigger background to re-run updateTab for this tab (ensures icon stays in sync after navigation)
+      chrome.runtime.sendMessage({ type: 'pg_force_update_tab', tabId: tab.id });
+    } catch (e) {
+      alert('Could not trust this site.');
     }
   };
 

@@ -279,50 +279,27 @@ def predict():
 def report_site():
     """
     Report a suspicious/malicious site.
-    Saves the report to reports.md file in the ml-backend directory.
-    
-    Expected JSON:
-    {
-        "url": "https://example.com",
-        "label": "suspicious" | "malicious" | "unknown",
-        "reasons": ["reason1", "reason2"]
-    }
-    
-    Returns:
-    {
-        "success": true,
-        "message": "Report saved successfully"
-    }
+    Saves the report to reports.md file locally AND syncs to GitHub if configured.
     """
     print(f"\n[API] Received report request from {request.remote_addr}")
     
     try:
         data = request.get_json()
-        
         if not data or 'url' not in data:
-            print("[API] ERROR: Missing 'url' parameter")
-            return jsonify({
-                'error': 'Missing "url" parameter'
-            }), 400
+            return jsonify({'error': 'Missing "url" parameter'}), 400
         
         url = data.get('url', '')
         label = data.get('label', 'unknown')
         reasons = data.get('reasons', [])
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        print(f"[API] Report: {url} ({label})")
-        
-        # Create reports.md file path (in ml-backend directory)
+        # 1. Local Save (Standard)
         reports_file = os.path.join(os.path.dirname(__file__), 'reports.md')
         
-        # Read existing content if file exists
-        existing_content = ''
-        if os.path.exists(reports_file):
-            with open(reports_file, 'r', encoding='utf-8') as f:
-                existing_content = f.read()
+        repo_update_status = "Skipped (No Token)"
         
-        # Prepare report entry
-        report_entry = f"""
+        # Prepare content
+        report_block = f"""
 ## {timestamp}
 
 - **URL**: `{url}`
@@ -332,34 +309,48 @@ def report_site():
 
 ---
 """
-        
-        # Check if this URL was already reported (to avoid duplicates)
-        if url in existing_content:
-            print(f"[API] Warning: URL already reported: {url}")
-            # Still append, but note it's a duplicate
-            report_entry = report_entry.replace('##', '## ⚠️ Duplicate Report -', 1)
-        
-        # Write to file (append mode)
+        # Append locally
         with open(reports_file, 'a', encoding='utf-8') as f:
-            f.write(report_entry)
+            f.write(report_block)
+            
+        # 2. GitHub Sync (New Feature)
+        github_token = os.environ.get('GITHUB_TOKEN')
+        repo_name = os.environ.get('GITHUB_REPO') # e.g. "G-man312/Phishguard-"
         
-        print(f"[API] Report saved to {reports_file}")
+        if github_token and repo_name:
+            try:
+                from github import Github
+                g = Github(github_token)
+                repo = g.get_repo(repo_name)
+                
+                # Path to reports.md in the repo (adjust if inside a subdir)
+                # Assumes reports.md is in ml-backend/reports.md based on repo structure
+                file_path = "ml-backend/reports.md" 
+                
+                try:
+                    contents = repo.get_contents(file_path)
+                    existing_data = contents.decoded_content.decode("utf-8")
+                    new_data = existing_data + report_block
+                    repo.update_file(contents.path, f"Add report for {url}", new_data, contents.sha)
+                    repo_update_status = "Success"
+                    print(f"[GITHUB] Successfully updated {file_path}")
+                except Exception as gh_e:
+                    print(f"[GITHUB] Error updating file: {gh_e}")
+                    repo_update_status = f"Failed: {str(gh_e)}"
+                    
+            except Exception as e:
+                print(f"[GITHUB] Integration error: {e}")
+                repo_update_status = f"Error: {str(e)}"
         
         return jsonify({
             'success': True,
-            'message': 'Report saved successfully',
-            'file': 'reports.md'
+            'message': 'Report processed',
+            'github_sync': repo_update_status
         })
         
     except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"[ERROR] Report save failed: {e}")
-        print(error_trace)
-        return jsonify({
-            'error': str(e),
-            'traceback': error_trace if app.debug else None
-        }), 500
+        print(f"[ERROR] Report failed: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/', methods=['GET'])
 def index():

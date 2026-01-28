@@ -701,14 +701,23 @@ async function updateTab(tabId, url, force = false) {
   // Use hybrid classification (URL heuristics + ML)
   const { label: quickLabel } = await classifyWithML(url);
 
-  // Whitelist override (blacklist removed per new rules)
+  // Whitelist or SAFE_DATASET override (blacklist removed per new rules)
   let effectiveLabel = quickLabel;
   try {
     const u = new URL(url);
     const host = u.hostname || '';
 
     const { whitelist = [] } = await chrome.storage.local.get(['whitelist']);
-    const isWhite = whitelist.some(d => matchesDomain(host, d));
+    const matchesDomain = (hostname, domain) => {
+      if (!hostname || !domain) return false;
+      if (hostname === domain) return true;
+      return hostname.endsWith('.' + domain);
+    };
+    let isWhite = whitelist.some(d => matchesDomain(host, d));
+    // Also check SAFE_DATASET (from classifier.js, should be global)
+    if (!isWhite && typeof self !== 'undefined' && self.SAFE_DATASET) {
+      isWhite = self.SAFE_DATASET.some(d => matchesDomain(host, d));
+    }
     if (isWhite) effectiveLabel = 'safe';
   } catch {}
   // Verify tab still exists before attempting updates
@@ -773,5 +782,10 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
     const tabId = sender?.tab?.id;
     if (!tabId) return;
     try { chrome.tabs.remove(tabId); } catch {}
+  } else if (msg.type === 'pg_force_update_tab' && msg.tabId) {
+    chrome.tabs.get(msg.tabId, (t) => {
+      if (chrome.runtime.lastError || !t) return;
+      updateTab(msg.tabId, t.url || '', true);
+    });
   }
 });

@@ -1,39 +1,251 @@
 :root {
-  --bg: #ffffff;
-  --fg: #111111;
-  --muted: #666666;
-  --chip-safe: #c8f7c5;
-  --chip-susp: #ffe8a3;
-  --chip-mal: #ffb3b3;
+  /* Colors */
+  --primary: #3B82F6;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --neutral: #64748B;
+  
+  --bg-app: #F1F5F9;
+  --bg-card: #FFFFFF;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --border: #E2E8F0;
+  
+  /* Status Gradients */
+  --grad-safe: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --grad-susp: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  --grad-mal: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  --grad-neutral: linear-gradient(135deg, #94A3B8 0%, #64748B 100%);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
 [data-theme="dark"] {
-  --bg: #121212;
-  --fg: #eaeaea;
-  --muted: #b0b0b0;
-  --chip-safe: #1e4620;
-  --chip-susp: #5a4b12;
-  --chip-mal: #4a1919;
+  --bg-app: #0F172A;
+  --bg-card: #1E293B;
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --border: #334155;
 }
 
-body { margin: 0; font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; width: 320px; background: var(--bg); color: var(--fg); }
-#app { padding: 12px; }
-header { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
-h1 { font-size: 16px; margin: 0; }
-small#url { color: var(--muted); max-width: 140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+body {
+  margin: 0;
+  width: 360px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-#badge { display:inline-block; padding:6px 10px; border-radius:999px; font-weight:600; margin:8px 0; }
-#message { margin: 6px 0 4px; }
-#reasons { margin: 6px 0 10px 18px; color:var(--muted); }
+#app {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-#actions { display:flex; gap:8px; flex-wrap: wrap; }
-button { padding:6px 10px; border:0; border-radius:8px; cursor:pointer; }
-button.ghost { background:#eee; }
-button.danger { background:#e53935; color:#fff; }
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-/* States */
-.state-trusted  #badge { background:var(--chip-safe); }
-.state-susp     #badge { background:var(--chip-susp); }
-.state-mal      #badge { background:var(--chip-mal); }
-.state-trusted  #message { color:#1b5e20; }
-.state-susp     #message { color:#8c6d1f; }
-.state-mal      #message { color:#ffb3b3; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+}
+
+.logo-icon {
+  stroke-width: 2.5;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: var(--text-main);
+}
+
+/* Theme Toggle Icons */
+[data-theme="light"] .sun-icon { display: none; }
+[data-theme="dark"] .moon-icon { display: none; }
+[data-theme="dark"] .sun-icon { display: block; }
+
+/* Main Card */
+.card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+/* Status Icons */
+.status-icon-container {
+  margin-bottom: 16px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon {
+  width: 64px;
+  height: 64px;
+  display: none; /* Hidden by default */
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* State Styling Logic */
+.state-trusted .icon-safe,
+.state-susp .icon-warn,
+.state-mal .icon-danger,
+.state-neutral .icon-unknown {
+  display: block;
+}
+
+.state-trusted .status-icon { color: var(--success); }
+.state-susp .status-icon { color: var(--warning); }
+.state-mal .status-icon { color: var(--danger); }
+.state-neutral .status-icon { color: var(--neutral); }
+
+
+/* Badge & Message */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 12px;
+  letter-spacing: 0.025em;
+  box-shadow: var(--shadow-sm);
+}
+
+.state-trusted #badge { background: var(--grad-safe); }
+.state-susp #badge { background: var(--grad-susp); }
+.state-mal #badge { background: var(--grad-mal); }
+.state-neutral #badge { background: var(--grad-neutral); }
+
+.url-display {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.status-message {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-main);
+  margin: 0 0 16px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+  width: 100%;
+}
+
+.reasons-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.reasons-list li {
+  margin-bottom: 6px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.reasons-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--border); /* Subtle bullet */
+}
+
+/* Actions Grid */
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary { background: var(--primary); color: white; }
+.btn-secondary { background: var(--border); color: var(--text-main); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-outline { 
+  background: transparent; 
+  border: 1px solid var(--border); 
+  color: var(--text-muted); 
+}
+.btn-outline:hover {
+  background: var(--bg-app);
+  color: var(--text-main);
+}
+
+/* Button Visibility Management (Matched with JS logic) */
+#proceed, #goback, #close, #report, #trust { display: none; }
+
+/* Show buttons based on context via JS, but we style them here */
